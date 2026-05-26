@@ -125,7 +125,7 @@ The volume keeps the SQLite database persistent across restarts.
 
 ## Deploy
 
-### Render (recommended, free background-worker tier)
+### Render (Render is paid to host the bot)
 
 1. Push this repo to GitHub.
 2. On Render, **New → Background Worker** (not Web Service — there's no HTTP).
