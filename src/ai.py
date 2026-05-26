@@ -2,7 +2,7 @@
 
 Builds a structured prompt from live indicators and asks Gemini to write a
 short, breakdown of the stock. The system prompt explicitly requires 'analysis'
-wording. 
+wording.
 """
 
 from __future__ import annotations

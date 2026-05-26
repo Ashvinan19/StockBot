@@ -1,4 +1,4 @@
-"""StockBot 
+"""StockBot.
 
 Holds the typed handles (config, db, ai) that every cog needs. Subclassing here
 means cogs can access `self.bot.db` etc. with full type-checking instead of

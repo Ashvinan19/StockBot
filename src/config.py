@@ -20,7 +20,7 @@ class Config:
     google_api_key: str | None
 
     @classmethod
-    def from_env(cls) -> "Config":
+    def from_env(cls) -> Config:
         token = os.getenv("DISCORD_TOKEN", "").strip()
         if not token:
             raise RuntimeError(
