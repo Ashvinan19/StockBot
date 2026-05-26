@@ -1,24 +1,17 @@
 # StockBot
 
-A Discord bot for live stock data, persistent watchlists, threshold price
-alerts, technical-indicator analysis, and AI-generated commentary.
+A Discord bot for live stock data, up to date accurate watchlists  aswell as threshold prices, alerts, technical-indicator analysis, and a summary of the stock and where it stands.
 
-[![CI](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.11%2B-blue)
-![discord.py](https://img.shields.io/badge/discord.py-2.7-5865F2)
-![SQLite](https://img.shields.io/badge/storage-SQLite-003B57)
-![License](https://img.shields.io/badge/license-MIT-green)
-
-> **Analysis only. This bot does not give financial advice.**
+![StockBot demo](stockbotdemo.gif)
 
 ## Features
 
-| Command | Description |
+| Command (stock can be changed) | Description |
 |---|---|
 | `$help` | Lists every command |
 | `$price AAPL` | Current price, change, % change |
 | `$info TSLA` | Price, day range, volume, market cap |
-| `$watch add\|remove\|list` | Persistent per-user watchlists (SQLite) |
+| `$watch add\|remove\|list` | Persistent per user watchlists (SQLite) |
 | `$alert AAPL above 200` | Background task fires when triggered |
 | `$alerts` / `$alert remove <id>` | Manage active alerts |
 | `$analyze AAPL` | SMA(20/50/200), RSI, MACD, 52-week range |
@@ -40,7 +33,7 @@ alerts, technical-indicator analysis, and AI-generated commentary.
 
 ```bash
 git clone https://github.com/Ashvinan19/StockBot.git
-cd YOUR_REPO
+cd StockBot
 
 python -m venv .venv
 # Windows
@@ -65,16 +58,7 @@ INFO stockbot: Logged on as YourBot#0000 (id=...)
 INFO stockbot: Prefix: '$'  |  AI provider: gemini
 ```
 
-Then in any channel where the bot is present:
 
-```
-$help
-$price AAPL
-$watch add MSFT
-$alert NVDA above 1000
-$analyze TSLA
-$summary AAPL
-```
 
 ## Required Discord setup
 
@@ -98,56 +82,34 @@ All configuration is environment-driven. Copy `.env.example` to `.env` and fill 
 If `GOOGLE_API_KEY` is unset, every other command still works; `$summary`
 politely tells the user it's disabled.
 
+
 ## Project layout
 
-```
-discordbot/
-├── bot.py                  # entry point: load config + start StockBot
-├── src/
-│   ├── bot.py              # commands.Bot subclass with typed config/db/ai
-│   ├── config.py           # typed Config loaded from .env
-│   ├── db.py               # aiosqlite wrapper for watchlist + alerts
-│   ├── stocks.py           # yfinance wrappers (async via asyncio.to_thread)
-│   ├── indicators.py       # SMA, EMA, RSI, MACD, Analysis snapshot
-│   ├── ai.py               # Gemini summary client
-│   └── cogs/
-│       ├── general.py      # $hello, $ping, $help
-│       ├── stocks_cog.py   # $price, $info
-│       ├── watchlist.py    # $watch add/remove/list
-│       ├── alerts.py       # $alert ... + background checker
-│       ├── analysis.py     # $analyze, $signal
-│       └── summary.py      # $summary (AI)
-├── tests/
-│   ├── test_indicators.py  # indicator math
-│   └── test_db.py          # async SQLite tests
-├── .github/workflows/ci.yml
-├── Dockerfile
-├── requirements.txt
-├── pyproject.toml
-└── README.md
-```
+**Entry point**
+- `bot.py` — what you actually run; loads config and starts the bot
 
-## Architecture notes
+**Core (`src/`)**
+- `bot.py` — the bot itself (a typed subclass of discord.py's `commands.Bot`)
+- `config.py` — reads your `.env` file into a `Config` object
+- `db.py` — all SQLite reads/writes for watchlists and alerts
+- `stocks.py` — fetches live prices and history from yfinance
+- `indicators.py` — math for RSI, MACD, moving averages, 52-week range
+- `ai.py` — talks to Gemini for the `$summary` command
 
-- **Subclassed `commands.Bot`** (`src/bot.py`) holds typed `config`, `db`, and
-  `ai` attributes — cogs access them with full type-checking instead of duck
-  typing.
-- **`yfinance` is synchronous**, so every public call in `src/stocks.py` is
-  wrapped with `asyncio.to_thread` to avoid blocking the gateway loop.
-- **Indicators are pure pandas/numpy** — no `ta-lib`, no native deps, so they
-  install cleanly on every platform and are easy to unit-test.
-- **Alerts persist across restarts.** Active alerts live in SQLite; the
-  in-process `tasks.loop` re-loads them on startup via `setup_hook`.
+**Commands (`src/cogs/`)** — one file per command group
+- `general.py` → `$hello`, `$ping`, `$help`
+- `stocks_cog.py` → `$price`, `$info`
+- `watchlist.py` → `$watch add/remove/list`
+- `alerts.py` → `$alert ...` plus the background price checker
+- `analysis.py` → `$analyze`, `$signal`
+- `summary.py` → `$summary`
 
-## Run the tests
+**Tests (`tests/`)**
+- `test_indicators.py` — checks the math (RSI on monotonic series, MACD shape, etc.)
+- `test_db.py` — checks the SQLite layer with an in-memory DB
 
-```bash
-pip install pytest pytest-asyncio
-pytest -v
-```
-
-12 tests cover indicator math (SMA, EMA, RSI, MACD, end-to-end analyze) and
-the SQLite watchlist + alerts schema.
+**Project meta**
+- `Dockerfile`, `requirements.txt`, `pyproject.toml`, `.github/workflows/ci.yml`
 
 ## Run in Docker
 
@@ -173,26 +135,6 @@ The volume keeps the SQLite database persistent across restarts.
 6. Add a persistent disk mounted at `/app/data` so watchlists and alerts
    survive redeploys.
 
-### Railway
-
-1. **New Project → Deploy from GitHub repo**.
-2. Set `DISCORD_TOKEN` and optional `GOOGLE_API_KEY`.
-3. Add a volume mounted at `/app/data`.
-
-### Fly.io
-
-1. `fly launch` (picks up the `Dockerfile`).
-2. `fly secrets set DISCORD_TOKEN=... GOOGLE_API_KEY=...`
-3. `fly volumes create data --size 1` and mount it at `/app/data` in `fly.toml`.
-
-## Notes & limitations
-
-- `yfinance` is unofficial and occasionally rate-limited — fine for personal
-  use, but don't rely on it for production trading systems.
-- The alert checker runs in-process. If the bot restarts, pending alerts
-  resume from the DB at the next interval.
-- `$summary` uses `gemini-2.5-flash` by default; swap models in `src/ai.py`.
-- Never commit your real `.env`. `.gitignore` already excludes it.
 
 ## License
 
