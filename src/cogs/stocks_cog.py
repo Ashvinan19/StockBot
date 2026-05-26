@@ -5,6 +5,7 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
+from ..bot import StockBot
 from ..stocks import StockError, format_money, get_info, get_quote
 
 
@@ -17,7 +18,7 @@ def _color_for_change(pct: float) -> discord.Color:
 
 
 class Stocks(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: StockBot):
         self.bot = bot
 
     @commands.command(name="price")
@@ -99,5 +100,5 @@ class Stocks(commands.Cog):
             )
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: StockBot):
     await bot.add_cog(Stocks(bot))

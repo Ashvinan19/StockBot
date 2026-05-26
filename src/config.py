@@ -1,4 +1,4 @@
-"""Centralized configuration loaded from environment variables."""
+"""Configuration settings for the application."""
 
 from __future__ import annotations
 
@@ -18,7 +18,6 @@ class Config:
     database_path: Path
     alert_check_interval_seconds: int
     google_api_key: str | None
-    openai_api_key: str | None
 
     @classmethod
     def from_env(cls) -> "Config":
@@ -39,5 +38,4 @@ class Config:
                 os.getenv("ALERT_CHECK_INTERVAL_SECONDS", "300")
             ),
             google_api_key=os.getenv("GOOGLE_API_KEY") or None,
-            openai_api_key=os.getenv("OPENAI_API_KEY") or None,
         )

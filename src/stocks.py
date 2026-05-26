@@ -7,11 +7,13 @@ thread so it never blocks the event loop.
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass
-from typing import Optional
 
 import pandas as pd
 import yfinance as yf
+
+log = logging.getLogger(__name__)
 
 
 class StockError(Exception):
@@ -83,18 +85,21 @@ def _info_sync(symbol: str) -> StockInfo:
     t = _ticker(symbol)
     fast = t.fast_info
 
-    def f(key: str) -> Optional[float]:
+    def _safe_float(key: str) -> float | None:
         try:
             v = fast[key]
             return float(v) if v is not None else None
         except (KeyError, TypeError, ValueError):
             return None
 
-    price = f("last_price")
-    prev = f("previous_close")
+    price = _safe_float("last_price")
+    prev = _safe_float("previous_close")
     if price is None or prev is None:
         raise StockError(f"No data for {symbol.upper()}")
 
+    # yfinance's .info hits a slow Reddit-style endpoint that frequently times
+    # out or returns 4xx for less-popular tickers. We treat it as best-effort:
+    # log and continue with the fast_info we already have.
     name: str | None = None
     market_cap: int | None = None
     try:
@@ -103,17 +108,17 @@ def _info_sync(symbol: str) -> StockInfo:
         mc = info.get("marketCap")
         if mc:
             market_cap = int(mc)
-    except Exception:
-        pass
+    except Exception as e:
+        log.debug("Extended .info fetch failed for %s: %s", symbol, e)
 
-    volume = f("last_volume") or f("ten_day_average_volume")
+    volume = _safe_float("last_volume") or _safe_float("ten_day_average_volume")
     return StockInfo(
         ticker=symbol.upper(),
         name=name,
         price=price,
         previous_close=prev,
-        day_high=f("day_high"),
-        day_low=f("day_low"),
+        day_high=_safe_float("day_high"),
+        day_low=_safe_float("day_low"),
         volume=int(volume) if volume else None,
         market_cap=market_cap,
         currency=getattr(fast, "currency", None),

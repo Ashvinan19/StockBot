@@ -5,12 +5,13 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
+from ..bot import StockBot
 from ..indicators import analyze
 from ..stocks import StockError, format_money, get_history
 
 
 class AnalysisCog(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: StockBot):
         self.bot = bot
 
     @commands.command(name="analyze")
@@ -75,5 +76,5 @@ class AnalysisCog(commands.Cog):
             )
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: StockBot):
     await bot.add_cog(AnalysisCog(bot))

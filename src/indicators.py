@@ -1,10 +1,7 @@
-"""Technical indicators computed from a price DataFrame.
+"""Technical indicators calculated from stock price data.
 
-All functions take a pandas DataFrame with at least a 'Close' column (the
-shape yfinance returns) and return either a Series or a small dict.
-
-These are kept dependency-free (pandas/numpy only) so they're easy to unit
-test and don't require ta-lib.
+Each function expects a pandas DataFrame with a 'Close' column and returns
+indicator values using only pandas and numpy.
 """
 
 from __future__ import annotations
@@ -85,7 +82,7 @@ class Analysis:
     low_52w: float
 
     def trend(self) -> str:
-        """Plain-English summary of the indicators (not financial advice)."""
+        """ summary of the indicators"""
         parts: list[str] = []
         if self.sma_50 is not None:
             if self.last_close > self.sma_50:

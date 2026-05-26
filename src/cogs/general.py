@@ -5,9 +5,11 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
+from ..bot import StockBot
+
 
 class General(commands.Cog):
-    def __init__(self, bot: commands.Bot):
+    def __init__(self, bot: StockBot):
         self.bot = bot
 
     @commands.command(name="hello")
@@ -75,5 +77,5 @@ class General(commands.Cog):
         await ctx.send(embed=embed)
 
 
-async def setup(bot: commands.Bot):
+async def setup(bot: StockBot):
     await bot.add_cog(General(bot))

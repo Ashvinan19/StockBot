@@ -5,14 +5,14 @@ from __future__ import annotations
 import discord
 from discord.ext import commands
 
-from ..db import Database
+from ..bot import StockBot
 from ..stocks import StockError, get_quote
 
 
 class Watchlist(commands.Cog):
-    def __init__(self, bot: commands.Bot, db: Database):
+    def __init__(self, bot: StockBot):
         self.bot = bot
-        self.db = db
+        self.db = bot.db
 
     @commands.group(name="watch", invoke_without_command=True)
     async def watch(self, ctx: commands.Context):
@@ -70,6 +70,5 @@ class Watchlist(commands.Cog):
         await ctx.send(embed=embed)
 
 
-async def setup(bot: commands.Bot):
-    db: Database = bot.db  # type: ignore[attr-defined]
-    await bot.add_cog(Watchlist(bot, db))
+async def setup(bot: StockBot):
+    await bot.add_cog(Watchlist(bot))

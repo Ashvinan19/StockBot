@@ -12,19 +12,20 @@ import logging
 import discord
 from discord.ext import commands, tasks
 
-from ..config import Config
-from ..db import Database
+from ..bot import StockBot
 from ..stocks import StockError, format_money, get_quote
 
 log = logging.getLogger(__name__)
 
 
 class Alerts(commands.Cog):
-    def __init__(self, bot: commands.Bot, db: Database, config: Config):
+    def __init__(self, bot: StockBot):
         self.bot = bot
-        self.db = db
-        self.config = config
-        self.check_alerts.change_interval(seconds=config.alert_check_interval_seconds)
+        self.db = bot.db
+        self.config = bot.config
+        self.check_alerts.change_interval(
+            seconds=bot.config.alert_check_interval_seconds
+        )
         self.check_alerts.start()
 
     def cog_unload(self):
@@ -151,7 +152,5 @@ class Alerts(commands.Cog):
         await self.bot.wait_until_ready()
 
 
-async def setup(bot: commands.Bot):
-    db: Database = bot.db  # type: ignore[attr-defined]
-    config: Config = bot.config  # type: ignore[attr-defined]
-    await bot.add_cog(Alerts(bot, db, config))
+async def setup(bot: StockBot):
+    await bot.add_cog(Alerts(bot))

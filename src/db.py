@@ -1,4 +1,4 @@
-"""SQLite persistence for watchlists and alerts (async via aiosqlite)."""
+"""Database functions for watchlists and alerts."""
 
 from __future__ import annotations
 
